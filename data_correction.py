@@ -15,9 +15,6 @@ def fix_strings(row):
     print("before strings\n", row)
     length_of_arr = len(row)
 
-    # **************************************************************
-    #   Yanlış değer gelme ihtimalinden dolayı düzenleme yapılacak
-    # **************************************************************
     for i in range(length_of_arr):
         word_exists = my_dict.check(row[i])
         if not word_exists:
@@ -105,10 +102,6 @@ def fix_lat_degree(row):
 
     for i in range(length_of_arr):
 
-        # **************************************************************
-        #   Burası ifler yerine while ile yazılacak
-        # **************************************************************
-
         if i != 0 and i != length_of_arr - 1:
             if row[i + 1] == row[i - 1]:
                 row[i] = row[i + 1]
@@ -138,10 +131,6 @@ def fix_min_sec(row):
     length_of_arr = len(row)
 
     for i in range(length_of_arr):
-
-        # **************************************************************
-        #   Burası ifler yerine while ile yazılacak
-        # **************************************************************
 
         if i > 0 and i != length_of_arr - 1:
             if row[i + 1] == row[i - 1]:
@@ -190,106 +179,9 @@ def fix_int(row):
     return row
 
 
-# def fix_anomalies(row, change_sensitivity):
-#    arr = pd.to_numeric(row.array, errors='coerce')
-#    print(arr)
-#
-#    length_of_arr = len(arr)
-#
-#    elements = np.array(arr)
-#    mean = np.nanmean(elements, axis=0)
-#    sd = np.nanstd(elements, axis=0)
-#    print(mean, sd)
-#    print(mean - change_sensitivity * sd)
-#    print(mean + change_sensitivity * sd)
-#    arr[np.isnan(arr)] = 50
-#
-#    for i in range(length_of_arr):
-#
-#        if not (mean + change_sensitivity * sd) >= arr[i] >= (mean - change_sensitivity * sd):
-#
-#            if i != 0 and i != length_of_arr - 1:
-#                if not (mean + change_sensitivity * sd) >= arr[i + 1] >= (mean - change_sensitivity * sd):
-#                    arr[i + 1] = mean
-#
-#                if arr[i + 1] == arr[i - 1]:
-#                    arr[i] = arr[i + 1]
-#
-#                elif i >= 2 > abs(arr[i - 1] - arr[i - 2]):
-#                    arr[i] = (arr[i - 1] + arr[i - 2]) / 2
-#                else:
-#                    arr[i] = (arr[i + 1] + arr[i - 1]) / 2
-#
-#            elif i == 0:
-#                if not i+1 == length_of_arr:
-#                    if not (mean + change_sensitivity * sd) >= arr[i + 1] >= (mean - change_sensitivity * sd):
-#                        arr[i + 1] = mean
-#                        arr[i] = arr[i + 1]
-#                else:
-#                    arr[i] = mean
-#            elif i == length_of_arr - 1:
-#                arr[i] = arr[i - 1]
-#
-#    arr[np.isnan(arr)] = 50
-#    arr = arr.astype(pd.Float64Dtype)
-#    # arr = arr.astype(int)
-#
-#    print(arr)
-#    return arr
-
-# def fix_anomalies(row, change_sensitivity):
-#    arr = pd.to_numeric(row.array, errors='coerce')
-#    print(arr)
-#
-#    length_of_arr = len(arr)
-#
-#    elements = np.array(arr)
-#    mean = np.nanmean(elements, axis=0)
-#    sd = np.nanstd(elements, axis=0)
-#    print(mean, sd)
-#    print(mean - change_sensitivity * sd)
-#    print(mean + change_sensitivity * sd)
-#    arr[np.isnan(arr)] = -99999
-#
-#    for i in range(length_of_arr):
-#
-#        if not (mean + change_sensitivity * sd) >= arr[i] >= (mean - change_sensitivity * sd):
-#
-#            if i != 0 and i != length_of_arr - 1:
-#                if (mean + change_sensitivity * sd) >= arr[i + 1] >= (mean - change_sensitivity * sd):
-#                    if arr[i + 1] == arr[i - 1]:
-#                        arr[i] = arr[i + 1]
-#                    else:
-#                        arr[i] = mean
-#                elif not (mean + change_sensitivity * sd) >= arr[i + 1] >= (mean - change_sensitivity * sd):
-#                    arr[i] = mean
-#                    arr[i + 1] = mean
-#
-#
-#                elif i >= 2 > abs(arr[i - 1] - arr[i - 2]):
-#                    arr[i] = (arr[i - 1] + arr[i - 2]) / 2
-#                else:
-#                    arr[i] = (arr[i + 1] + arr[i - 1]) / 2
-#
-#            elif i == 0:
-#                if not i + 1 == length_of_arr:
-#                    if not (mean + change_sensitivity * sd) >= arr[i + 1] >= (mean - change_sensitivity * sd):
-#                        arr[i + 1] = mean
-#                    arr[i] = arr[i + 1]
-#            elif i == length_of_arr - 1:
-#                arr[i] = arr[i - 1]
-#
-#    arr[np.isnan(arr)] = 50  ################################ Düzeltilecek!!!!!!!!!
-#    arr = arr.astype(pd.Float64Dtype)
-#    # arr = arr.astype(int)
-#
-#    print(arr)
-#    return arr
 
 def fix_anomalies(row, change_sensitivity):
-    # **************************************************************
-    #   Test edilip düzeltilecek !!!!!
-    # **************************************************************
+
     arr = pd.to_numeric(row.array, errors='coerce')
     print(arr)
 
@@ -325,7 +217,7 @@ def fix_anomalies(row, change_sensitivity):
                 arr[i] = arr[i + 1]
             elif i == length_of_arr - 1:
                 arr[i] = arr[i - 1]
-    arr[np.isnan(arr)] = 50  ################################ Düzeltilecek!!!!!!!!!
+    arr[np.isnan(arr)] = 50  
     arr = arr.astype(pd.Float64Dtype)
     # arr = arr.astype(int)
 
@@ -466,23 +358,6 @@ def check_arms(lon, lat, num_by_num, tolerance):
 
     return lon, lat, distances
 
-
-# def fix_locations(locations_df):
-#    locations = pd.to_numeric(locations_df.array, errors='coerce')
-#
-#    print("LOCATIONS GIRENLER", locations )
-#
-#
-#    for i in range(len(time) - 1):
-#        if abs(time[i + 1] - time[i]) > 2*second_difference :
-#            time[i + 1] = time[i] + second_difference
-#        hour[i + 1] = time[i + 1] / 3600
-#        minute[i + 1] = (time[i + 1] % 3600) / 60
-#        second[i + 1] = (time[i + 1] % 3600) % 60
-#
-#    print("Time CIKANLAR", hour, minute, second)
-#    return hour, minute, second
-
 def between(min, max, list):
     list = pd.to_numeric(list, errors='coerce')
     list.tolist()
@@ -522,85 +397,10 @@ def between(min, max, list):
                     if not fixed:
                         list[i] = 50
                         # for j in range (7):
-                #    print("3")
-                #    if i-l == -1:
-                #        l+=6
-                #    if i+r == len(list):
-                #        r-=6
-                #    if list[i-l]==list[i+r]:
-                #        list[i]=list[i+r]
-                #        break
-
+           
     return list
 
 
-# def fix_df(df):
-#    # df['minute_lat'] = fix_int(df['minute_lat'])
-#    # df['second_lat'] = fix_int(df['second_lat'])
-#    # df['minute_lon'] = fix_int(df['minute_lon'])
-#    # df['second_lon'] = fix_int(df['second_lon'])
-#
-#    df['month'] = monthToNum(fix_strings(df['month']))
-#
-#    df['direction_lat'] = fix_strings(df['direction_lat'])
-#    df['direction_lon'] = fix_strings(df['direction_lon'])
-#    df['target_direction_lat'] = fix_strings(df['target_direction_lat'])
-#    df['target_direction_lon'] = fix_strings(df['target_direction_lon'])
-#    df['year'] = fix_strings(df['year'])
-#    df['day'] = fix_day(df['day'])
-#
-#    df['day'] = np.array((sender_fix_anomalies(df['day'], 10, 0.5)), dtype=np.int)
-#    df['hour'] = np.array((sender_fix_anomalies(df['hour'], 10, 1)), dtype=np.int)
-#    df['min'] = sender_fix_anomalies(df['min'], 10, 3)
-#    df['sec'] = sender_fix_anomalies(df['sec'], 10, 3)
-#    df['hour'], df['min'], df['sec'] = fix_time(df['hour'], df['min'], df['sec'])
-#    df['hour'] = np.array(df['hour'], dtype=np.int)
-#    df['min'] = np.array(df['min'], dtype=np.int)
-#    df['sec'] = np.array(df['sec'], dtype=np.int)
-#
-#    # df['degree_lat'] = between(0, 90, df['degree_lat'])
-#    df['degree_lat'] = np.array((sender_fix_anomalies(df['degree_lat'], 10, 1.2)), dtype=np.int)
-#    df['degree_lat'] = np.array((sender_fix_anomalies(df['degree_lat'], 20, 1)), dtype=np.int)
-#    df = df[df['degree_lat'] < 91]
-#
-#    df['minute_lat'] = np.array((sender_fix_anomalies(df['minute_lat'], 10, 2.1)), dtype=np.int)
-#    df['second_lat'] = np.array((sender_fix_anomalies(df['second_lat'], 10, 3)), dtype=np.int)
-#    df['degree_lon'] = np.array((sender_fix_anomalies(df['degree_lon'], 10, 1.2)), dtype=np.int)
-#    df['degree_lon'] = np.array((sender_fix_anomalies(df['degree_lon'], 10, 1)), dtype=np.int)
-#    df = df[df['degree_lon'] < 181]
-#    df['minute_lon'] = np.array((sender_fix_anomalies(df['minute_lon'], 10, 2.1)), dtype=np.int)
-#    df['second_lon'] = np.array((sender_fix_anomalies(df['second_lon'], 10, 3)), dtype=np.int)
-#
-#    # df['target_degree_lat'] = between(0, 90, df['target_degree_lat'])
-#    df['target_degree_lat'] = np.array((sender_fix_anomalies(df['target_degree_lat'], 10, 1)), dtype=np.int)
-#    df['target_degree_lat'] = np.array((sender_fix_anomalies(df['target_degree_lat'], 20, 1)), dtype=np.int)
-#    df = df[df['target_degree_lat'] < 91]
-#
-#    df['target_minute_lat'] = np.array((sender_fix_anomalies(df['target_minute_lat'], 10, 2)), dtype=np.int)
-#    df['target_second_lat'] = np.array((sender_fix_anomalies(df['target_second_lat'], 10, 3)), dtype=np.int)
-#
-#    df['target_degree_lon'] = np.array((sender_fix_anomalies(df['target_degree_lon'], 10, 1)), dtype=np.int)
-#    df = df[df['target_degree_lon'] < 181]
-#
-#    df['target_minute_lon'] = np.array((sender_fix_anomalies(df['target_minute_lon'], 10, 2.1)), dtype=np.int)
-#    df['target_second_lon'] = np.array((sender_fix_anomalies(df['target_second_lon'], 10, 3)), dtype=np.int)
-#
-#    # **************************************************************
-#    #   Daha fazla data için denenmedi. Konum verileri için farklı bir algoritma geliştirilse daha iyi olur.
-#    # **************************************************************
-#    df['target_degree_lon'] = np.array(np.ceil(savgol_filter(df['target_degree_lon'], 5, 1)), dtype=np.int)
-#    df['target_degree_lat'] = np.array(np.ceil(savgol_filter(df['target_degree_lat'], 5, 1)), dtype=np.int)
-#    df['degree_lon'] = np.array(np.ceil(savgol_filter(df['target_degree_lon'], 5, 1)), dtype=np.int)
-#    df['degree_lat'] = np.array(np.ceil(savgol_filter(df['target_degree_lat'], 5, 1)), dtype=np.int)
-#
-#    df['target_degree_lon'] = np.array(np.ceil(savgol_filter(df['target_degree_lon'], 5, 1)), dtype=np.int)
-#    df['target_degree_lat'] = np.array(np.ceil(savgol_filter(df['target_degree_lat'], 5, 1)), dtype=np.int)
-#    df['degree_lon'] = np.array(np.ceil(savgol_filter(df['target_degree_lon'], 5, 1)), dtype=np.int)
-#    df['degree_lat'] = np.array(np.ceil(savgol_filter(df['target_degree_lat'], 5, 1)), dtype=np.int)
-#
-#    df['heading_angle'] = np.array((sender_fix_anomalies(df['heading_angle'], 5, 2)), dtype=np.int)
-#
-#    return df
 
 def fix_df(df):
     # df['minute_lat'] = fix_int(df['minute_lat'])
@@ -658,12 +458,10 @@ def fix_df(df):
     df['target_minute_lon'] = np.array((sender_fix_anomalies(df['target_minute_lon'], 10, 2.1)), dtype=np.int)
     df['target_second_lon'] = np.array((sender_fix_anomalies(df['target_second_lon'], 10, 3)), dtype=np.int)
 
-    # **************************************************************
-    #   Daha fazla data için denenmedi. Konum verileri için farklı bir algoritma geliştirilse daha iyi olur.
-    # **************************************************************
     df['target_degree_lon'] = np.array(np.ceil(savgol_filter(df['target_degree_lon'], 33, 1)), dtype=np.int)
     df['target_degree_lat'] = np.array(np.ceil(savgol_filter(df['target_degree_lat'], 33, 1)), dtype=np.int)
 
-    df['heading_angle'] = np.array((sender_fix_anomalies(df['heading_angle'], 5, 2)), dtype=np.int)
+    df['heading_angle'] = np.array((sender_fix_anomalies(df['heading_angle'], 5, 1)), dtype=np.int)
+    df['altitude'] = np.array((sender_fix_anomalies(df['altitude'], 10, 1)), dtype=np.int)
 
     return df

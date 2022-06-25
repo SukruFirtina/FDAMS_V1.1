@@ -10,34 +10,36 @@ from requests import Request, Session
 
 import cv2
 import pandas as pd
-import serializers as serializers
+#import serializers as serializers
 from folium import plugins
 import folium
 import sys
-from PyQt5.QtCore import *
-from PyQt5.QtWebEngineWidgets import *
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+#from PyQt5.QtCore import *
+#from PyQt5.QtWebEngineWidgets import *
+#from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 import simplekml
 import environment as env
 import pathlib
 import sys
-from gui_tools import restart_program
+#from gui_tools import restart_program
 from data_correction import fix_time_digit, sender_fix_anomalies, fix_by_distances
 import webview
 from tkinter import *
 from folium.plugins import *
 import base64
 import json
-from django.forms.models import model_to_dict
-from statsmodels.nonparametric.kernel_regression import KernelReg
+#from django.forms.models import model_to_dict
+#from statsmodels.nonparametric.kernel_regression import KernelReg
 from scipy.signal import savgol_filter
 import numpy as np
-from folium_jsbutton import JsButton
+#from folium_jsbutton import JsButton
 from tkinter import *
 from itertools import islice
 from itertools import chain
 
 import json
+import string
+import enchant
 
 
 from PIL import Image
@@ -52,7 +54,7 @@ def files(image_frames):
     if not os.path.exists(image_frames):
         os.makedirs(image_frames)
 
-    src_vid = cv2.VideoCapture("yeni.mp4")
+    src_vid = cv2.VideoCapture("video.mp4")
     return src_vid
 
 
@@ -116,6 +118,7 @@ def create_kml():
     between_lines = []
     points = []
     target_points = []
+    camera_areas = []
 
     lon, lat = calculate_location(df['degree_lat'], df['minute_lat'], df['second_lat'], df['direction_lat'],
                                   df['degree_lon'], df['minute_lon'], df['second_lon'], df['direction_lon'])
@@ -145,13 +148,36 @@ def create_kml():
 
     # **************************************************************
     # SEVGOL uygulanıp uygulanmayacağını kullanıcının seçmesi daha uygun olur.
+    # SEVGOL parametreleri seçilen fps değerine göre değişmeli
     # **************************************************************
-    lon = savgol_filter(lon, 53, 1)
-    lat = savgol_filter(lat, 53, 1)
-    target_lon = savgol_filter(target_lon, 53, 1)
-    target_lat = savgol_filter(target_lat, 53, 1)
+    lon = savgol_filter(lon, 53, 2)
+    lat = savgol_filter(lat, 53, 2)
+    target_lon = savgol_filter(target_lon, 53, 2)
+    target_lat = savgol_filter(target_lat, 53, 2)
 
+    f = open('flight.kml', 'w')
 
+    # Writing the kml file.
+    f.write("<?xml version='1.0' encoding='UTF-8'?>\n")
+    f.write("<kml xmlns='http://earth.google.com/kml/2.2'>\n")
+    f.write("<Document>\n")
+    f.write("   <name>flight</name>\n")
+    for i in range(1, len(lon)):
+        f.write("<Placemark>\n")
+        f.write("        <TimeSpan>\n          <begin>" + '2015-12-02T%02i:%02i:%02iZ' % (
+        df['hour'][i], df['min'][i], df['sec'][i]) + "</begin>\n        </TimeSpan>\n")
+        f.write("   <LineString>\n")
+        f.write("       <extrude>1</extrude>\n")
+        f.write("       <altitudeMode>absolute</altitudeMode>\n")
+        f.write("        <coordinates>" + str(lon[i - 1]) + "," + str(lat[i - 1]) + "," + str(
+            df['altitude'][i-1]*0.3048) + " " + str(lon[i]) + "," + str(lat[i]) + "," + str(
+            df['altitude'][i]*0.3048) + "</coordinates>\n")
+        f.write("   </LineString>\n")
+        f.write("</Placemark>\n")
+
+    f.write("</Document>")
+    f.write("</kml>\n")
+    f.close()
 
 
 
@@ -224,9 +250,35 @@ def create_kml():
                             i - 1] + ":" +
                         second[i - 1]
                     ],
-                    "color": "green",
-                    "weight": 5})
-        i += 1
+                    "color": "#40E0D0",
+                    "weight": 7,
+                    "dash_array" : '10',
+                    "offset" : 100
+            }
+            )
+
+        if i != 1:
+            between_lines.append(
+                {"coordinates": [
+                    [location[1], location[0]],
+                    [target_location[1], target_location[0]],
+                ],
+                    "dates": [
+
+                        year[i - 1] + "-" + month[i - 1] + "-" + day[i - 1] + "T" + hour[i - 1] + ":" + minute[
+                            i - 1] + ":" +
+                        second[i - 1],
+                        year[i - 1] + "-" + month[i - 1] + "-" + day[i - 1] + "T" + hour[i - 1] + ":" + minute[
+                            i - 1] + ":" +
+                        second[i - 1]
+                    ],
+                    "color": "black",
+                    "weight": 2,
+                    "dash_array" : '10',
+                    "offset" : 100
+            }
+            )
+
 
         if i != 1:
             points.append(
@@ -234,9 +286,9 @@ def create_kml():
                     location[1], location[0]
                 ],
                     "dates": [
-                        year[i - 2] + "-" + month[i - 2] + "-" + day[i - 2] + "T" + hour[i - 2] + ":" + minute[
-                            i - 2] + ":" +
-                        second[i - 2],
+                        year[i - 1] + "-" + month[i - 1] + "-" + day[i - 1] + "T" + hour[i - 1] + ":" + minute[
+                            i - 1] + ":" +
+                        second[i - 1],
                     #year[i - 1] + "-" + month[i - 1] + "-" + day[i - 1] + "T" + hour[i - 1] + ":" + minute[
                     #        i - 1] + ":" +
                     #    second[i - 1]
@@ -254,15 +306,60 @@ def create_kml():
                     target_location[1], target_location[0]
                 ],
                     "dates": [
-                        year[i - 2] + "-" + month[i - 2] + "-" + day[i - 2] + "T" + hour[i - 2] + ":" + minute[
-                            i - 2] + ":" +
-                        second[i - 2]],
+                        year[i - 1] + "-" + month[i - 1] + "-" + day[i - 1] + "T" + hour[i - 1] + ":" + minute[
+                            i - 1] + ":" +
+                        second[i - 1]],
                     "color": "blue",
                     "weight": 10,
+                    # "opacity": 0.50
+                })
+
+        if i != 1:
+            camera_areas.append(
+                {"coordinates": [((
+                    (prev_loc[1], prev_loc[0]),
+                    (location[1], location[0]),
+                    (target_location[1], target_location[0]),
+                    (target_prev_loc[1], target_prev_loc[0]),
+
+                ),)],
+                    "dates": [
+                        year[i - 1] + "-" + month[i - 1] + "-" + day[i - 1] + "T" + hour[i - 1] + ":" + minute[
+                            i - 1] + ":" +
+                        second[i - 1]],
+                    "color": "blue",
+                    "weight": 2,
+                    "fillColor": "#458B00",
+                    "opacity": 1,
+                    "fillOpacity":1,
                     #"opacity": 0.50
                 })
+
+        if i != 1:
+            camera_areas.append(
+                {"coordinates": [((
+                                      (location[1], location[0]),
+                                      (target_prev_loc[1], target_prev_loc[0]),
+                                      (target_location[1], target_location[0]),
+                                      (prev_loc[1], prev_loc[0]),
+                                      (location[1], location[0]),
+                                      (target_location[1], target_location[0]),
+
+                                  ),)],
+                    "dates": [
+                        year[i - 1] + "-" + month[i - 1] + "-" + day[i - 1] + "T" + hour[i - 1] + ":" + minute[
+                            i - 1] + ":" +
+                        second[i - 1]],
+                    "color": "#00EE00",
+                    "weight": 2,
+                    "fillColor": "#DC143C",
+                    "opacity": 1,
+                    "fillOpacity": 1,
+                    # "opacity": 0.50
+                })
+        i += 1
     # **************************************************************
-    # Otomatik zoom
+    # Auto zoom
     # **************************************************************
     df_for_auto_zoom = pd.DataFrame({'Lat': lat, 'Long': lon})
     sw = df_for_auto_zoom[['Lat', 'Long']].min().values.tolist()
@@ -281,6 +378,7 @@ def create_kml():
     features4 = []
     features5 = []
     features6 = []
+    features7 = []
 
     marker = []
     #for i in range(len(df)):
@@ -300,11 +398,6 @@ def create_kml():
         #img = img.resize((60,60))
         img = img.rotate(360-df['heading_angle'][i])
         img.save("markers/marker_"+str(i)+".png")
-
-
-
-
-
 
 
 
@@ -453,13 +546,15 @@ def create_kml():
                     #"iconstyle": {
                     #    'iconSize': [60, 60],
                     #    'iconUrl': str(pathlib.Path().resolve().as_uri()) + '/markers/marker_' + str(i) + '.png'},
-                    "popup":
-                        '<img src= "' + str(pathlib.Path().resolve().as_uri()) + '/image_frames/' + df['frame'][i] + '"'
-                                                                                                                     'width="640"'
-                                                                                                                     'height="360"/>',
+                    #"popup":
+                    #    '<img src= "' + str(pathlib.Path().resolve().as_uri()) + '/image_frames/' + df['frame'][i] + '"'
+                    #                                                                                                 'width="640"'
+                    #                                                                                                 'height="360"/>',
                     "times": between_line["dates"],
                     "style": {
                         "color": between_line["color"],
+                        "dash_array": between_line["dash_array"],
+                        "offset": between_line["offset"],
                         "weight": between_line["weight"] if "weight" in line else 2,}
 
                 },
@@ -496,7 +591,38 @@ def create_kml():
         before_coord = target_point['coordinates']
         i += 1
 
+    i = 0
+    before_time = []
+    for camera_area in camera_areas:
+        if before_time == camera_area["dates"]:
+            camera_area['coordinates'] = before_coord
 
+        features7.append(
+            {
+                "type": "Feature",
+                'geometry': {'type': 'MultiPolygon', 'coordinates': camera_area['coordinates']},
+
+                "properties": {
+                    "icon": 'marker',
+                    "iconstyle": {
+                        'iconSize': [50, 50],
+                        'iconUrl': str(pathlib.Path().resolve().as_uri()) + '/res/target_marker.png'},
+
+                    "times": camera_area["dates"],
+
+                    "style": {
+                        "color": camera_area["color"],
+                        "fillColor": camera_area["fillColor"],
+                        "opacity":camera_area["opacity"],
+                        "fillOpacity": camera_area["fillOpacity"],
+                        "weight": camera_area["weight"] if "weight" in camera_area else 2, }
+
+                },
+            }
+        )
+        before_time = target_point["dates"]
+        before_coord = target_point['coordinates']
+        i += 1
 
 
     i = 0
@@ -521,7 +647,10 @@ def create_kml():
     plugins.TimestampedGeoJson(
         {
             "type": "FeatureCollection",
-            "features": features+features2+features3+features6+features4+features5,
+            "features":
+                features+features2+features3+features6+features4+features5
+
+            ,
         },
         period="PT1S",
         duration='PT0S',
@@ -538,23 +667,8 @@ def create_kml():
     map_.add_child(MeasureControl())
     MousePosition().add_to(map_)
 
-
-    #env.window.withdraw()
-    app = QApplication(sys.argv)
-    web = QWebEngineView()
     minimap = MiniMap()
     map_.add_child(minimap)
-    #video = folium.raster_layers.VideoOverlay(
-    #    video_url=(str(pathlib.Path().resolve().as_uri()) + '/yeni.mp4'),
-    #    bounds=[[32, -130], [13, -100]],
-    #    opacity=0.65,
-    #    attr="Video from patricia_nasa",
-    #    autoplay=True,
-    #    loop=False,
-#
-    #)
-#
-#    video.add_to(map_)
 
     folium.TileLayer(
         tiles="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
@@ -608,47 +722,33 @@ def create_kml():
 
     ).add_to(map_)
 
+    folium.raster_layers.WmsTileLayer(
+        url="https://cdn-webgl.eegeo.com/eegeojs/api/v0.1.780/eegeo.js",
+        name="kılhıluholıj",
+        fmt="image/png",
+        layers="nexrad-n0r-900913",
+        attr=u"Weather data © 2012 IEM Nexrad",
+        transparent=True,
+        overlay=False,
+        control=True,
+
+    ).add_to(map_)
 
 
+    file_path = "res/check_is_day.txt"
 
-   # url = (
-   #     "https://raw.githubusercontent.com/SECOORA/static_assets/master/maps/img/rose.png"
-   # )
-#
-   # FloatImage(url, bottom=0, left=19).add_to(map_)
-
+    # instantiating the enchant dictionary
+    # with request_pwl_dict()
+    pwl = enchant.request_pwl_dict(file_path)
+    print("enchant", pwl, type(pwl))
+    ALLOWED_LIST = string.ascii_uppercase + string.digits
+    print("list_ne", ALLOWED_LIST[5],type(ALLOWED_LIST))
 
     folium.LayerControl().add_to(map_)
 
     draw = Draw()
 
     draw.add_to(map_)
-
-    #JsButton(
-    #    title='<i class="fas fa-crosshairs"></i>', function="""
-    #    function(btn, map) {
-    #        map.setView([42.3748204, -71.1161913],5);
-    #        btn.state('zoom-to-forest');
-    #    }
-    #    """).add_to(map_)
-#
-    #JsButton(
-    #    title='<i class="fas fa-crosshairs"></i>', function="""
-    #    function(btn, map) {
-    #        map.setView([42.3748204, 71.1161913],5);
-    #        btn.state('zoom-to-forest');
-    #    }
-    #    """).add_to(map_)
-
-    #'<body> <div id="map"></div><button id="refreshButton">Refresh Button</button></body><style>#refreshButton {position: absolute;top: 20px;right: 20px;padding: 10px;z-index: 400;}</style>'.add_to(map_)
-
-    #JsButton(
-    #    title='<i class="fas fa-crosshairs"></i>', function="""
-    #    function(btn, map) {
-    #        map.setView([42.3748204, -71.1161913],5);
-    #        btn.state('zoom-to-forest');
-    #    }
-    #    """).add_to(map_)
 
 
 
@@ -660,34 +760,6 @@ def create_kml():
     env.label_information.configure(text="KML file is created")
 
     print(threading.active_count())
-
-    # imv = pg.ImageView()
-    # imv.show()
-    # imv.setImage('image_frames/frame0200')
-
-    # window = QMainWindow()
-    # window.setGeometry(0, 0, 4000, 2000)
-    #web.setGeometry(0, 0, 1915, 1035)
-    #web.showMaximized()
-#
-    #sys.exit(app.exec_())
-
-
-
-
-
-
-    # pic = QLabel(web)
-
-    # pic.setPixmap(
-    #     QPixmap(os.getcwd() + "/image_frames/frame" + str(i * 200)).scaled(int(192 * 2), int(108 * 2)))
-    # pic.setGeometry(10, 10, int(192 * 2), int(108 * 2))
-    # pic.show()
-
-    # web.setHtml(HTML_STR, QUrl.FromLocalFile(os.path.dirname(os.path.realpath(__file__))))
-
-    # window.show()
-
 
 
 

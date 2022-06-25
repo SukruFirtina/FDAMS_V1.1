@@ -3,9 +3,16 @@ import os
 from tkinter import *
 from tkinter import filedialog
 from tkinter.ttk import *
+import tkinter as tk
 import PySimpleGUI as sg
 import environment as env
 import sys
+import PIL
+from PIL import ImageTk
+from tkinter import Tk, DoubleVar, IntVar, StringVar
+from tkinter.ttk import Progressbar, Label, Style, Frame, Button
+
+
 
 
 class ToolTip(object):
@@ -53,38 +60,6 @@ def CreateToolTip(widget, text):
 
 
 def show_csv():
-    # root = tkinter.Tk()
-    #
-    # root.geometry("1010x710")
-    # root.pack_propagate(True)
-    #
-    # # Frame for TreeView
-    # frame1 = tkinter.LabelFrame(root, text="Excel Data", background='black')
-    # frame1.place(height=700, width=1000)
-    #
-    # ## Treeview Widget
-    # tv1 = ttk.Treeview(frame1)
-    # tv1.place(relheight=1, relwidth=1)
-    #
-    # treescrolly = tkinter.Scrollbar(frame1, orient="vertical", command=tv1.yview)
-    # treescrollx = tkinter.Scrollbar(frame1, orient="horizontal", command=tv1.xview)
-    # tv1.configure(xscrollcommand=treescrollx.set, yscrollcommand=treescrolly.set)
-    # treescrollx.pack(side="bottom", fill="x")
-    # treescrolly.pack(side="right", fill="y")
-    #
-    # file_path = "files/output.csv"
-    #
-    # df = pd.read_csv(file_path)
-    #
-    # tv1["column"] = list(df.columns)
-    # tv1["show"] = "headings"
-    # for column in tv1["columns"]:
-    #     tv1.heading(column, text=column)  # let the column heading = column name
-    # df_rows = df.to_numpy().tolist()  # turns the dataframe into a list of lists
-    # for row in df_rows:
-    #     tv1.insert("", "end", values=row)
-    #
-    # root.mainloop()
 
     csv_file = 'files/fixed_output.csv'
     with open(csv_file, "r") as infile:
@@ -133,23 +108,27 @@ def show_csv():
     return mainloop()
 
 
-
-b_filename = ""
-
-
 def browse_files():
-    global b_filename
-    b_filename = filedialog.askopenfilename(initialdir="/",
+    file_path = filedialog.askopenfilename(initialdir="/",
                                             title="Select a File",
                                             filetypes=(("Video",
                                                         "*.mp4*"),
                                                        ("csv file",
                                                         "*.csv")))
-    if b_filename == "":
-        env.label_information.configure(text="File could not be opened !!! " + b_filename)
+    if file_path == "":
+        env.label_information.configure(text="File could not be opened !!! " + file_path)
     else:
-        env.label_information.configure(text="File Opened: " + b_filename)
+        env.label_information.configure(text="File Opened: " + file_path)
 
+    env.video_file_path = file_path
+
+def browse_csv():
+    file_path = filedialog.askopenfilename(initialdir="/",
+                                            title="Select a CSV File",
+                                           filetypes=(("csv file",
+                                                       "*.csv*"),
+                                                      ))
+    return file_path
 
 def minimize_window():
     env.window.wm_state('iconic')
@@ -179,3 +158,8 @@ def center(win, pyqt=False):
     y = win.winfo_screenheight() // 2 - win_height // 2
     win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
     win.deiconify()
+
+
+
+
+
